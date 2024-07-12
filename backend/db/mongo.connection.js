@@ -10,4 +10,5 @@ const connetMongoDB =  async() =>{
     }
 }
 
+
 export default connetMongoDB;
