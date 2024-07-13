@@ -4,12 +4,17 @@ import dotenv from 'dotenv';
 import connetMongoDB from "./db/mongo.connection.js";
 const app = express();
 dotenv.config();
+
+
+app.use(express.json()); // middle ware to parse req.body 
+app.use(express.urlencoded({extended : true})); //  to parse the form data in the req.body
+
+
 app.use('/api/auth',authRoutes );
 
 
 
 
-app.use(express.json()); // middle ware to parse req.body 
 
 console.log(process.env.MONGO_URI);
 const port = process.env.PORT || 8000

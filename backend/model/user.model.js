@@ -6,11 +6,20 @@ const userSchema = mongoose.Schema({
     type:String,
     required : true,
     unique: true
-   }, 
+   },
    password : {
     type : String, 
     required : true
    }, 
+   branch : {
+      type : String, 
+      required : true
+   }, 
+   stream : {
+      type : String, 
+      required : true
+   }, 
+
    followers: [
     {
         type : mongoose.Schema.Types.ObjectId,
