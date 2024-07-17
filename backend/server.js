@@ -1,5 +1,6 @@
 import express from "express";
 import authRoutes from './routes/auth.routes.js'
+import postRoutes from './routes/post.routes.js';
 import userRoutes from './routes/user.routes.js';
 import dotenv from 'dotenv';
 import connetMongoDB from "./db/mongo.connection.js";
@@ -22,8 +23,8 @@ app.use(express.urlencoded({extended : true})); //  to parse the form data in th
 app.use(cookieParser());
 
 app.use('/api/auth',authRoutes );
-
 app.use('/api/users', userRoutes);
+app.use('/api/posts', postRoutes);
 
 
 
