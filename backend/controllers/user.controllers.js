@@ -1,5 +1,7 @@
 import Notification from "../model/notification.model.js";
 import User from "../model/user.model.js";
+import bcrypt from "bcryptjs";
+import {v2 as cloudinary} from 'cloudinary';
 
 export const getUserProfile = async (req, res) => {
   const { email } = req.params;
@@ -82,3 +84,78 @@ export const getSuggestedUser = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const updateUser =  async(req, res) =>{
+  const { email,branch, stream,  bio , currentPassword, newPassword } = req.body;
+ 
+    let {profileImg, converImg} = req.body;
+    const userId = req.user._id;
+  try {
+    let user = await User.findById(userId);
+    if(!user) return res.status(404).json({error : "user not found"});
+    if( (!newPassword && currentPassword) || (newPassword && !currentPassword)){
+      return res.status(400).json({error : "enter both new password along with the current password"});
+    }
+    if( newPassword.length < 6) {
+      return res.status(400).json({error : "password length should be more than or equal to 6"});
+    }
+
+
+
+    if(currentPassword && newPassword){
+      
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      
+      if(!isMatch) return res.status(400).json({error : "Please enter the correct current password"});
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword  = await bcrypt.hash(newPassword, salt);
+      user.password = hashedPassword;
+
+    }
+
+    if(profileImg){
+      /// if users is having a profile img previously we have to remove the previous image of his from the cloudinary cloud 
+      if(user.profileImg){
+       
+        await cloudinary.uploader.destroy(user.profileImg.split('/').pop().split('.')[0]);
+      }
+
+
+
+
+
+      //update the profile image to be able to update an image and store and image we have to use the cloudinary platform
+      
+      
+      const uploadedResponse = await cloudinary.uploader.upload(profileImg);
+     profileImg = uploadedResponse.secure_url;
+
+    }
+    if(converImg){
+      // similarly just like the profile image 
+      if(user.converImg){
+       
+        await cloudinary.uploader.destroy(user.converImg.split('/').pop().split('.')[0]);
+      }
+
+
+      const uploadedResponse = await cloudinary.uploader.upload(converImg);
+      converImg = uploadedResponse.secure_url;
+    }
+    user.email = email || user.email;
+    user.branch = branch || user.branch;
+    user.stream = stream || user.stream;
+    user.bio = bio || user.bio;
+    user.profileImg = profileImg || user.profileImg;
+    user.converImg = converImg || user.converImg;
+   user = await user.save();
+
+
+   user.password = null; //  making the password null in the response
+   return res.status(200).json(user);
+
+  } catch (error) {
+    console.log(`error in the user controller update profile function ${ error.message}`);
+    return res.status(500).json({error : "Internal server error"});
+  }
+}
