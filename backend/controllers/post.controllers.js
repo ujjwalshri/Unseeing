@@ -134,3 +134,47 @@ export const getLikedPosts = async (req, res) =>{
         return res.status(500).json({error : "Internal server errorr"});
     }
 }
+
+export const getFollowingPost = async(req, res ) =>{
+    try {
+        const userId = req.user._id;
+        const user = await User.findById(userId);
+        if(!user) return res.status(404).json({error : "404 user not found"});
+        const following  = user.following;
+        const feedPosts = await PostModel.find( { user : {$in : following}})
+        .sort({createdAt : -1}).populate({
+            path : "user", 
+            select : "-password"
+        }).populate({
+            path : "comments.user", 
+            select: "-password",
+        })
+
+        return res.status(200).json(feedPosts);
+    } catch (error) {
+        console.log(`Error in the post controller get all following fucntion ${error.message}`);
+        return res.status(500).json({error : "Internal server error"});
+    }
+}
+
+
+export const getUserPosts = async(req, res)=>{
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    if(!user) return res.status(404).json({error : "User not found"});
+   const posts = await PostModel.find( {user  : userId })
+   .sort({createdAt : -1}).populate({
+    path : "user", 
+    select : "-password"
+   }).populate({
+    path : "comments.user", 
+    select : "-password"
+   })
+    
+   return res.status(200).json(posts);
+  } catch (error) {
+    console.log(`error in the getUserpost function in the post controllers ${error.message}`);
+    return res.status(500).json({error : "Internal server error"});
+  }
+}
