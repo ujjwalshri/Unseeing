@@ -4,9 +4,9 @@ import bcrypt from "bcryptjs";
 import {v2 as cloudinary} from 'cloudinary';
 
 export const getUserProfile = async (req, res) => {
-  const { email } = req.params;
+  const { id } = req.params;
   try {
-    const user = await User.findOne({ email }).select("-password");
+    const user = await User.findById( id ).select("-password");
     if (!user) return res.status(400).json({ error: "User not find" });
     res.status(200).json(user);
   } catch (err) {

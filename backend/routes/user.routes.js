@@ -5,7 +5,7 @@ import { getUserProfile, followUnfollowUser, getSuggestedUser, updateUser } from
 const router = express.Router();
 
 
-router.get('/profile/:email' , protectRoute, getUserProfile);
+router.get('/profile/:id' , protectRoute, getUserProfile);
 router.get('/suggested', protectRoute, getSuggestedUser);
 router.post('/follow/:id',protectRoute,  followUnfollowUser);
 router.post('/update', protectRoute, updateUser);
