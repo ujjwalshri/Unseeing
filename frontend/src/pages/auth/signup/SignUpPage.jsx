@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import { Toaster, toast } from 'react-hot-toast';
+import { useMutation } from "@tanstack/react-query";
 import XSvg from "../../../components/svgs/X";
 import { FaGraduationCap } from "react-icons/fa6";
 import { MdOutlineMail } from "react-icons/md";
@@ -29,9 +30,45 @@ const SignUpPage = () => {
 		branch: "", // Added branch to formData
 	});
 
+	const { mutate, isError, isPending, error } = useMutation({
+		mutationFn: async ({ email, password, branch, stream }) => {
+			try {
+				const res = await fetch("/api/auth/signup", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ email, password, branch, stream }),
+				});
+	
+				if (res.ok) {
+					const data = await res.json();
+					if (data.error) {
+						console.error(data.error);
+						throw new Error(data.error);
+					}
+					console.log(data);
+					return data;
+				} else {
+					const errorData = await res.json();
+					throw new Error(errorData.error || "Unknown error occurred");
+				}
+			} catch (error) {
+				console.error(error);
+				toast.error("Something went wrong");
+				// Optionally, rethrow the error if you want to handle it elsewhere
+				throw error;
+			}
+		},
+		onSuccess: (data) => {
+			console.log(data);
+			toast.success("Signup successful");
+		}
+	});
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		console.log(formData);
+		mutate(formData);
 	};
 
 	const handleInputChange = (e) => {
@@ -44,7 +81,7 @@ const SignUpPage = () => {
 		setBranch(branch);
 	};
 
-	const isError = false;
+
 
 	return (
         
@@ -126,7 +163,7 @@ const SignUpPage = () => {
 							value={formData.password}
 						/>
 					</label>
-					<button className='btn rounded-full btn-primary text-white'>Sign up</button>
+					<button className='btn rounded-full btn-primary text-white'>{isPending?  "Loading...." : "signup" } </button>
 					{isError && <p className='text-red-500'>Something went wrong</p>}
 				</form>
 				<div className='flex flex-col lg:w-2/3 gap-2 mt-4'>
