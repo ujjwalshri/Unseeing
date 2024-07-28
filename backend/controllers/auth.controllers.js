@@ -98,6 +98,7 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
    try {
     res.cookie("jwt" ,  "", {maxAge:0}); // maxAge 0 will make sure the cookies gets destroyed without any delay
+   console.log(req.user._id);
     res.status(200).json({mssg: "Logged out successfully"});
    } catch (error) {
     console.log(`Error in the logout controller: ${error}`);
