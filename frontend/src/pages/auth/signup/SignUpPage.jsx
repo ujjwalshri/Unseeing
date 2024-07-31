@@ -9,8 +9,10 @@ import { FaUser } from "react-icons/fa";
 import { MdPassword } from "react-icons/md";
 import { FaBook } from "react-icons/fa";
 import { MdDriveFileRenameOutline } from "react-icons/md";
-
+import { useQueryClient } from "@tanstack/react-query";
 const SignUpPage = () => {
+
+	const queryClient = useQueryClient();
     const[notification, setNotification] = useState(false);
 
 	const [branch, setBranch] = useState("select your branch");
@@ -61,8 +63,9 @@ const SignUpPage = () => {
 			}
 		},
 		onSuccess: (data) => {
-			console.log(data);
-			toast.success("Signup successful");
+			toast.success("Signup successful welcome to unseeing");
+			queryClient.invalidateQueries({ queryKey: ['Auth user'] });
+
 		}
 	});
 
