@@ -4,21 +4,53 @@ import { FaRegHeart } from "react-icons/fa";
 import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import {toast} from 'react-hot-toast'
 
 const Post = ({ post }) => {
 	console.log(post);
 	const [comment, setComment] = useState("");
+
+	const {data:authUser} = useQuery({queryKey : ['Auth user']});
+    const queryClient = useQueryClient();
+
+    const {mutate : deletePost, isPending }  = useMutation({
+		mutationFn : async () => {
+			try {
+				const res = await fetch(`/api/posts/${post._id}`, {
+					method : 'DELETE',
+				})
+				const data = await res.json();
+				if(!res.ok){
+					throw new Error(data.message || 'Something went wrong');
+				}
+				return data;
+			} catch (error) {
+				throw new Error(error.message);
+			}
+		}
+		, 
+		onSuccess : () =>{
+			toast.success('Post deleted successfully');
+			
+			queryClient.invalidateQueries({queryKey : ['posts']});
+		}
+
+	})
+	
 	const postOwner = post.user;
 	const isLiked = false;
-
-	const isMyPost = true;
+    
+	const isMyPost = authUser._id === post.user._id;
 
 	const formattedDate = "1h";
 
 	const isCommenting = false;
 
-	const handleDeletePost = () => {};
+	const handleDeletePost = () => {
+		deletePost();
+	};
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
@@ -30,17 +62,17 @@ const Post = ({ post }) => {
 		<>
 			<div className='flex gap-2 items-start p-4 border-b border-gray-700'>
 				<div className='avatar'>
-					<Link to={`/profile/${postOwner.branch}`} className='w-8 rounded-full overflow-hidden'>
+					<Link to={`/profile/${postOwner._id}`} className='w-8 rounded-full overflow-hidden'>
 						<img src={postOwner.profileImg || "/avatar-placeholder.png"} />
 					</Link>
 				</div>
 				<div className='flex flex-col flex-1'>
 					<div className='flex gap-2 items-center'>
-						<Link to={`/profile/${postOwner.branch}`} className='font-bold'>
+						<Link to={`/profile/${postOwner._id}`} className='font-bold'>
 							{postOwner.fullName}
 						</Link>
-						<span className='text-gray-700 flex gap-1 text-sm'>
-							<Link to={`/profile/${postOwner.branch}`}>@{postOwner.branch}</Link>
+						<span className='text-gray-300 flex gap-1 text-sm'>
+							<Link to={`/profile/${postOwner._id}`}>{ isMyPost == true ? 'Your post' :  postOwner.branch }</Link>
 							<span>·</span>
 							<span>{formattedDate}</span>
 						</span>
