@@ -82,7 +82,8 @@ const Sidebar = () => {
                         <div className='flex justify-between flex-1'>
                             <div className='hidden md:block'>
                                 
-                                <p className='text-slate-500 text-sm'>@{authUser?.branch}</p>
+                                <p className='text-slate-500 text-lg'>@{authUser?.branch}</p>
+                                <p className='text-slate-500 text-sm'>{authUser?.stream}</p>
                             </div>
                             <BiLogOut
                                 className='w-5 h-5 cursor-pointer'
