@@ -24,10 +24,10 @@ function App() {
     if(!res.ok){
       throw new Error(data.error || 'Something went wrong');
     }
-    console.log(data);
+    
     return data;
     } catch (error) {
-      console.error(`Error in the auth user query: ${error}`);
+      
       throw new Error(`Error in the auth user query: ${'blaa blaa'} ${error}`);
     }
     
