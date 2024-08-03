@@ -74,7 +74,9 @@ export const likeOnPost = async(req, res) =>{
             // user have already liked the post so just go and unlike it 
              await PostModel.updateOne({ _id: postId }, { $pull: { likes: userId } });
              await User.updateOne({ _id : userId} , {$pull : { likedPosts : postId}});
-            return res.status(200).json({message: "successfully unliked the post"});
+
+            const updatedLikes = post.likes.filter((id) => id.toString() !== userId.toString());
+            return res.status(200).json(updatedLikes);
            
         }else{
             // user have not ever liked the post so go ahead and like the post;
@@ -88,8 +90,8 @@ export const likeOnPost = async(req, res) =>{
                 type : 'like'
             })
             await notification.save();
-
-            return res.status(201).json({message : "successfully liked the post"});
+            const updatedLikes = post.likes;
+            return res.status(201).json(updatedLikes);
         }
 
     } catch (error) {
