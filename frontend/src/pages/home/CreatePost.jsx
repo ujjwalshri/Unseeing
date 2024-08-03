@@ -2,23 +2,55 @@ import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const CreatePost = () => {
 	const [text, setText] = useState("");
 	const [img, setImg] = useState(null);
-
 	const imgRef = useRef(null);
 
-	const isPending = false;
-	const isError = false;
+    const {data : authUser}  = useQuery({queryKey : ['Auth user']});
+	const queryClient = useQueryClient();
+	const {mutate : createPost , isPending, isError } = useMutation({
+		mutationFn : async ({text}) => {
+         try {
+			    const res = await fetch("/api/posts/create", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ text }),
+				});
+				const data = await res.json();
+				if (!res.ok) {
+					throw new Error(data.error || "Something went wrong");
+				}
+				console.log(data);
+				return data;
+			}
+		  catch (error) {
+			throw new Error(error.message || "Something went wrong");
+		 }
+		} ,
+		onSuccess : () => {
+			toast.success("Post created successfully");
+            queryClient.invalidateQueries({queryKey : ['posts']});
+			setText("");
+			setImg(null);
+		}
+	})
 
-	const data = {
-		profileImg: "/avatars/boy1.png",
-	};
+	
+
+	
+
+	
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		alert("Post created successfully");
+		createPost({text});
+
 	};
 
 	const handleImgChange = (e) => {
@@ -36,7 +68,8 @@ const CreatePost = () => {
 		<div className='flex p-4 items-start gap-4 border-b border-gray-700'>
 			<div className='avatar'>
 				<div className='w-8 rounded-full'>
-					<img src={data.profileImg || "/avatar-placeholder.png"} />
+					<img src={authUser.profileImg || "/avatar-placeholder.png"} />
+					
 				</div>
 			</div>
 			<form className='flex flex-col gap-2 w-full' onSubmit={handleSubmit}>
