@@ -1,36 +1,46 @@
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../../components/svgs/common/LoadingSpinner";
-
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { IoSettingsOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
 
 const NotificationPage = () => {
-	const isLoading = false;
-	const notifications = [
-		{
-			_id: "1",
-			from: {
-				_id: "1",
-				username: "johndoe",
-				profileImg: "/avatars/boy2.png",
-			},
-			type: "follow",
+    const queryClient = useQueryClient();
+	const { data: notifications, isLoading } = useQuery({
+		queryKey: ["notifications"],
+		queryFn: async () => {
+			try {
+				const res = await fetch("/api/notifications");
+				const data = await res.json();
+				if (!res.ok) {
+					throw new Error(data.message || "Something went wrong");
+				}
+				return data;
+			} catch (error) {
+				throw new Error(error.message);
+			}
 		},
-		{
-			_id: "2",
-			from: {
-				_id: "2",
-				username: "janedoe",
-				profileImg: "/avatars/girl1.png",
-			},
-			type: "like",
+	});
+	const { mutate : deleteNotifications } = useMutation({
+		mutationFn : async () => {
+			try {
+				const res = await fetch('/api/notifications', {
+					method : 'DELETE',
+				})
+				const data = await res.json();
+				if(!res.ok){
+					throw new Error(data.message || 'Something went wrong');
+				}
+				return data;
+			} catch (error) {
+				throw new Error(error.message);
+			}
 		},
-	];
-
-	const deleteNotifications = () => {
-		alert("All notifications deleted");
-	};
+		onSuccess : () => {
+			queryClient.invalidateQueries({queryKey : ['notifications']});
+		}
+	})
 
 	return (
 		<>
@@ -69,7 +79,7 @@ const NotificationPage = () => {
 									</div>
 								</div>
 								<div className='flex gap-1'>
-									<span className='font-bold'>@{notification.from.username}</span>{" "}
+									<span className='font-bold'>Someone From {notification.from.branch}</span>{" "}
 									{notification.type === "follow" ? "followed you" : "liked your post"}
 								</div>
 							</Link>

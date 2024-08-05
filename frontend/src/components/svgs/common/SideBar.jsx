@@ -4,11 +4,13 @@ import { FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 const Sidebar = () => {
-    const queryClient = useQueryClient();
+   
 
+    const queryClient = useQueryClient();
     const mutation = useMutation({
 
         mutationFn: async () => {
@@ -31,7 +33,9 @@ const Sidebar = () => {
     });
 
     const {data : authUser}  = useQuery({queryKey : ['Auth user']});
-
+  
+  
+    
     return (
         <div className='md:flex-[2_2_0] w-18 max-w-52'>
             <div className='sticky top-0 left-0 h-screen flex flex-col border-r border-gray-700 w-20 md:w-full'>
@@ -56,7 +60,7 @@ const Sidebar = () => {
                             className='flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
                         >
                             <IoNotifications className='w-6 h-6' />
-                            <span className='text-lg hidden md:block'>Notifications</span>
+                            <span className='text-lg hidden md:block'>Notifications </span>
                         </Link>
                     </li>
                     <li className='flex justify-center md:justify-start'>
