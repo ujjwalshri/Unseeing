@@ -1,19 +1,21 @@
-import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
-
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { formatMemberSinceDate } from "../../utils/date";
 import Posts from "../../components/svgs/common/Posts";
 import ProfileHeaderSkeleton from "../../components/svgs/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 
 import { POSTS } from "../../utils/db/dummy";
-
+import { useQuery } from "@tanstack/react-query";
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 
+
 const ProfilePage = () => {
-     
+      
+   const id = useParams().id;
 
 	const [coverImg, setCoverImg] = useState(null);
 	const [profileImg, setProfileImg] = useState(null);
@@ -22,20 +24,32 @@ const ProfilePage = () => {
 	const coverImgRef = useRef(null);
 	const profileImgRef = useRef(null);
 
-	const isLoading = false;
-	const isMyProfile = true;
+	
+	
+    const {data :user, isLoading, isRefetching, refetch } = useQuery({
+		queryKey : ['profilePage'],
+		queryFn : async () => {
+			try {
+				const res = await fetch(`/api/users/profile/${id}`);
+				const data = await res.json();
+				if(!res.ok){
+					throw new Error(data.message || 'Something went wrong');
+				}
+				return data;
+			} catch (error) {
+				throw new Error(error.message || 'Something went wrong');
+			}
+		}
+	});
+	const { data : authUser  } = useQuery({ queryKey : ['Auth user']});
+	const isMyProfile = id === authUser?._id;
+	
+	const joinedSince = formatMemberSinceDate(user?.createdAt);
+	useEffect(()=>{
+		refetch();
+	}, [id, refetch]);
 
-	const user = {
-		_id: "1",
-		fullName: "John Doe",
-		username: "johndoe",
-		profileImg: "/avatars/boy2.png",
-		coverImg: "/cover.png",
-		bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-		link: "https://youtube.com/@asaprogrammer_",
-		following: ["1", "2", "3"],
-		followers: ["1", "2", "3"],
-	};
+	 
 
 	const handleImgChange = (e, state) => {
 		const file = e.target.files[0];
@@ -53,17 +67,17 @@ const ProfilePage = () => {
 		<>
 			<div className='flex-[4_4_0]  border-r border-gray-700 min-h-screen '>
 				{/* HEADER */}
-				{isLoading && <ProfileHeaderSkeleton />}
-				{!isLoading && !user && <p className='text-center text-lg mt-4'>User not found</p>}
+				{(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
+				{!isLoading && !user && !isRefetching && <p className='text-center text-lg mt-4'>User not found</p>}
 				<div className='flex flex-col'>
-					{!isLoading && user && (
+					{!isLoading && user && !isRefetching && (
 						<>
 							<div className='flex gap-10 px-4 py-2 items-center'>
 								<Link to='/'>
 									<FaArrowLeft className='w-4 h-4' />
 								</Link>
 								<div className='flex flex-col'>
-									<p className='font-bold text-lg'>{user?.fullName}</p>
+									<p className='font-bold text-lg'>{user?.branch}</p>
 									<span className='text-sm text-slate-500'>{POSTS?.length} posts</span>
 								</div>
 							</div>
@@ -132,9 +146,8 @@ const ProfilePage = () => {
 
 							<div className='flex flex-col gap-4 mt-14 px-4'>
 								<div className='flex flex-col'>
-									<span className='font-bold text-lg'>{user?.fullName}</span>
-									<span className='text-sm text-slate-500'>@{user?.username}</span>
-									<span className='text-sm my-1'>{user?.bio}</span>
+									<span className='font-bold text-lg'>{user?.branch}</span>
+									<span className='text-sm text-slate-500'>@{user?.stream}</span>
 								</div>
 
 								<div className='flex gap-2 flex-wrap'>
@@ -148,14 +161,14 @@ const ProfilePage = () => {
 													rel='noreferrer'
 													className='text-sm text-blue-500 hover:underline'
 												>
-													youtube.com/@asaprogrammer_
+												  {user?.link}
 												</a>
 											</>
 										</div>
 									)}
 									<div className='flex gap-2 items-center'>
 										<IoCalendarOutline className='w-4 h-4 text-slate-500' />
-										<span className='text-sm text-slate-500'>Joined July 2021</span>
+										<span className='text-sm text-slate-500'>{ joinedSince  }</span>
 									</div>
 								</div>
 								<div className='flex gap-2'>
@@ -192,7 +205,7 @@ const ProfilePage = () => {
 						</>
 					)}
 
-					<Posts />
+					<Posts feedType={feedType} userId={user?._id} />
 				</div>
 			</div>
 		</>
