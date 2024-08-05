@@ -8,101 +8,94 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 const Sidebar = () => {
-   
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong");
+      }
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Logout successful");
+      window.location.href = "/login";
+    },
+    onError: (error) => {
+      toast.error(`Logout failed: ${error.message}`);
+    },
+  });
 
-    const queryClient = useQueryClient();
-    const mutation = useMutation({
+  const { data: authUser } = useQuery({ queryKey: ["Auth user"] });
 
-        mutationFn: async () => {
-            const res = await fetch("/api/auth/logout", {
-                method: "POST",
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                throw new Error(data.error || "Something went wrong");
-            }
-            return data;
-        },
-        onSuccess: () => {
-            toast.success("Logout successful");
-            window.location.href = "/login";
-        },
-        onError: (error) => {
-            toast.error(`Logout failed: ${error.message}`);
-        },
-    });
-
-    const {data : authUser}  = useQuery({queryKey : ['Auth user']});
-  
-  
-    
-    return (
-        <div className='md:flex-[2_2_0] w-18 max-w-52'>
-            <div className='sticky top-0 left-0 h-screen flex flex-col border-r border-gray-700 w-20 md:w-full'>
-                <Link to='/' className='flex justify-center md:justify-start'>
-                    <div className="h-1/2 w-1/2">
-                        <img src="/Unseeing logo.png" alt="" />
-                    </div>
-                </Link>
-                <ul className='flex flex-col gap-3 mt-4'>
-                    <li className='flex justify-center md:justify-start'>
-                        <Link
-                            to='/'
-                            className='flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
-                        >
-                            <MdHomeFilled className='w-8 h-8' />
-                            <span className='text-lg hidden md:block'>Home</span>
-                        </Link>
-                    </li>
-                    <li className='flex justify-center md:justify-start'>
-                        <Link
-                            to='/notifications'
-                            className='flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
-                        >
-                            <IoNotifications className='w-6 h-6' />
-                            <span className='text-lg hidden md:block'>Notifications </span>
-                        </Link>
-                    </li>
-                    <li className='flex justify-center md:justify-start'>
-                        <Link
-                            to={`/profile/${authUser?.branch}`}
-                            className='flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
-                        >
-                            <FaUser className='w-6 h-6' />
-                            <span className='text-lg hidden md:block'>Profile</span>
-                        </Link>
-                    </li>
-                </ul>
-                {authUser && (
-                    <Link
-                        to={`/profile/${authUser._id}`}
-                        className='mt-auto mb-10 flex gap-2 items-start transition-all duration-300 hover:bg-[#181818] py-2 px-4 rounded-full'
-                    >
-                        <div className='avatar hidden md:inline-flex'>
-                            <div className='w-8 rounded-full'>
-                                <img src={authUser?.profileImg || "/avatar-placeholder.png"} />
-                            </div>
-                        </div>
-                        <div className='flex justify-between flex-1'>
-                            <div className='hidden md:block'>
-                                
-                                <p className='text-slate-500 text-lg'>@{authUser?.branch}</p>
-                                <p className='text-slate-500 text-sm'>{authUser?.stream}</p>
-                            </div>
-                            <BiLogOut
-                                className='w-5 h-5 cursor-pointer'
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    mutation.mutate();
-                                    
-                                }}
-                            />
-                        </div>
-                    </Link>
-                )}
+  return (
+    <div className="md:flex-[2_2_0] w-18 max-w-52">
+      <div className="sticky top-0 left-0 h-screen flex flex-col border-r border-gray-700 w-20 md:w-full">
+        <Link to="/" className="flex justify-center md:justify-start">
+          <div className="h-1/2 w-1/2">
+            <img src="/Unseeing logo.png" alt="" />
+          </div>
+        </Link>
+        <ul className="flex flex-col gap-3 mt-4">
+          <li className="flex justify-center md:justify-start">
+            <Link
+              to="/"
+              className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+            >
+              <MdHomeFilled className="w-8 h-8" />
+              <span className="text-lg hidden md:block">Home</span>
+            </Link>
+          </li>
+          <li className="flex justify-center md:justify-start">
+            <Link
+              to="/notifications"
+              className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+            >
+              <IoNotifications className="w-6 h-6" />
+              <span className="text-lg hidden md:block">Notifications </span>
+            </Link>
+          </li>
+          <li className="flex justify-center md:justify-start">
+            <Link
+              to={`/profile/${authUser?._id}`}
+              className="flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer"
+            >
+              <FaUser className="w-6 h-6" />
+              <span className="text-lg hidden md:block">Profile</span>
+            </Link>
+          </li>
+        </ul>
+        {authUser && (
+          <Link
+            to={`/profile/${authUser._id}`}
+            className="mt-auto mb-10 flex gap-2 items-start transition-all duration-300 hover:bg-[#181818] py-2 px-4 rounded-full"
+          >
+            <div className="avatar hidden md:inline-flex">
+              <div className="w-8 rounded-full">
+                <img src={authUser?.profileImg || "/avatar-placeholder.png"} />
+              </div>
             </div>
-        </div>
-    );
+            <div className="flex justify-between flex-1">
+              <div className="hidden md:block">
+                <p className="text-slate-500 text-lg">@{authUser?.branch}</p>
+                <p className="text-slate-500 text-sm">{authUser?.stream}</p>
+              </div>
+              <BiLogOut
+                className="w-5 h-5 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  mutation.mutate();
+                }}
+              />
+            </div>
+          </Link>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default Sidebar;
